@@ -1,0 +1,41 @@
+{
+  "conditions": {
+    "clear": "Wolkenlos",
+    "clear-night": "Wolkenlos",
+    "partlycloudy-night": "Teilweise bewölkt",
+    "cloudy": "Bewölkt",
+    "fog": "Nebel",
+    "hail": "Hagel",
+    "thunderstorm": "Gewitter",
+    "partlycloudy": "Teilweise bewölkt",
+    "heavyrain": "Platzregen",
+    "rainy": "leichter Regen",
+    "pouring": "Regen",
+    "snow": "Schnee",
+    "mixedPrecip": "Gemischter Niederschlag",
+    "sunny": "Sonnig",
+    "windy": "Windig"
+  },
+  "direction": {
+    "n": "N",
+    "nne": "NNO",
+    "ne": "NO",
+    "ene": "ONO",
+    "e": "O",
+    "ese": "OSO",
+    "se": "SO",
+    "sse": "SSO",
+    "s": "S",
+    "ssw": "SSW",
+    "sw": "SW",
+    "wsw": "WSW",
+    "w": "W",
+    "wnw": "WNW",
+    "nw": "NW",
+    "nnw": "NNW"
+  },
+  "headline": {
+    "temperature": "Temperatur",
+    "precipitation": "Niederschlag"
+  }
+}

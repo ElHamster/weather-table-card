@@ -1,0 +1,41 @@
+{
+  "conditions": {
+    "clear": "Clear",
+    "clear-night": "Clear Night",
+    "partlycloudy-night": "Partly Cloudy Night",
+    "cloudy": "Cloudy",
+    "fog": "Fog",
+    "hail": "Hail",
+    "thunderstorm": "Thunderstorm",
+    "partlycloudy": "Partly Cloudy",
+    "heavyrain": "Heavy Rain",
+    "rainy": "Light Rain",
+    "pouring": "Pouring Rain",
+    "snow": "Snow",
+    "mixedPrecip": "Mixed Precipitation",
+    "sunny": "Sunny",
+    "windy": "Windy"
+  },
+  "direction": {
+    "n": "N",
+    "nne": "NNE",
+    "ne": "NE",
+    "ene": "ENE",
+    "e": "E",
+    "ese": "ESE",
+    "se": "SE",
+    "sse": "SSE",
+    "s": "S",
+    "ssw": "SSW",
+    "sw": "SW",
+    "wsw": "WSW",
+    "w": "W",
+    "wnw": "WNW",
+    "nw": "NW",
+    "nnw": "NNW"
+  },
+  "headline": {
+    "temperature": "Temperature",
+    "precipitation": "Precipitation"
+  }
+}
