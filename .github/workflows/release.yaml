@@ -11,19 +11,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      # install deps
+      - name: Installs deps
+        run: yarn
+
       # Build
       - name: Build the file
-        run: |
-          yarn
+        run:
           yarn build
 
       # Upload build file to the release as an asset.
       - name: Upload zip to release
         uses: svenstaro/upload-release-action@v2
-
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./dist/weather-table-card.js
           asset_name: weather-table-card.js
-          tag: ${{ github.ref }}
           overwrite: true
