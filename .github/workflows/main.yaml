@@ -1,0 +1,17 @@
+name: 'Build'
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Test build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          yarn
+          yarn build
