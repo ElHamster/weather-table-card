@@ -2,7 +2,7 @@
   "name": "weather-table-card",
   "type": "module",
   "packageManager": "yarn@3.6.3",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "scripts": {
     "dev": "parcel src/weather-table-card.ts",
     "build": "parcel build src/weather-table-card.ts --public-url ./"

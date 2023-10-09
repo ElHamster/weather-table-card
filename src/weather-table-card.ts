@@ -79,13 +79,16 @@ class WeatherForecastCard extends LitElement {
 
     if (
       !this.subscribedToForecast ||
-      this.config?.entity !== changedConfig?.entity
+      (changedConfig && this.config?.entity !== changedConfig?.entity)
     ) {
       console.log(this.config.entity);
       this.subscribeToForecastEvents();
     }
 
-    if (!equal(changedForecastEventData, this.forecastEventData)) {
+    if (
+      changedForecastEventData &&
+      !equal(changedForecastEventData, this.forecastEventData)
+    ) {
       this.splitForecastInDays();
 
       console.log(this.forecastByDay);
