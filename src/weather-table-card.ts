@@ -1,4 +1,5 @@
 import { css, html, LitElement, unsafeCSS } from "lit";
+import equal from "fast-deep-equal";
 
 // @ts-ignore
 import { customElement, property } from "lit/decorators";
@@ -72,19 +73,23 @@ class WeatherForecastCard extends LitElement {
   updated(changedProps: Map<string, any>) {
     super.updated(changedProps);
 
-    this.splitForecastInDays();
-    this.activeDay = this.activeDay ?? this.forecastByDay?.[0]?.date;
     const changedConfig: IConfig = changedProps.get("config");
+    const changedForecastEventData: IForecastEventData =
+      changedProps.get("forecastEventData");
 
     if (
       !this.subscribedToForecast ||
       this.config?.entity !== changedConfig?.entity
     ) {
+      console.log(this.config.entity);
       this.subscribeToForecastEvents();
     }
 
-    console.log(this.config.entity);
-    console.log(this.forecastByDay);
+    if (!equal(changedForecastEventData, this.forecastEventData)) {
+      this.splitForecastInDays();
+
+      console.log(this.forecastByDay);
+    }
   }
 
   // Lit - Lifecycle methods END
