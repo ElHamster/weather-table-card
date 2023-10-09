@@ -44,7 +44,6 @@ class WeatherForecastCard extends LitElement {
   @property()
   activeDay: string = new Date().toDateString();
 
-  @property()
   forecastByDay: IForecastByDay = [];
 
   private hass: Record<string, any> = {};
