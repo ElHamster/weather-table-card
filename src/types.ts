@@ -1,3 +1,7 @@
+export type IConfig = {
+  entity: string;
+};
+
 export type IForecast = {
   datetime: string;
   condition: string;
@@ -11,3 +15,7 @@ export type IForecastByDay = {
   date: string;
   forecast: IForecast[];
 }[];
+
+export type IForecastEventData = {
+  forecast: IForecast[];
+};

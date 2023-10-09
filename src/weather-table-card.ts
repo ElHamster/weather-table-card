@@ -1,9 +1,16 @@
 import { css, html, LitElement, unsafeCSS } from "lit";
+
 // @ts-ignore
 import { customElement, property } from "lit/decorators";
 import { clsx, getCondition } from "./utils.ts";
 import { localize } from "./i18n/localize.ts";
-import { IForecast, IForecastByDay } from "./types.ts";
+import {
+  IConfig,
+  IForecast,
+  IForecastByDay,
+  IForecastEventData,
+} from "./types.ts";
+
 import classes from "bundle-text:./styles.css";
 
 const dayNames = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
@@ -29,15 +36,17 @@ const ICONS: Record<string, string> = {
 @customElement("weather-forecast-card")
 class WeatherForecastCard extends LitElement {
   @property()
-  config: Record<string, any> = {};
+  config: IConfig = { entity: "" };
 
   @property()
-  forecastEventData: any;
+  forecastEventData: IForecastEventData | undefined;
 
   @property()
   activeDay: string = new Date().toDateString();
 
-  private forecastByDay: IForecastByDay = [];
+  @property()
+  forecastByDay: IForecastByDay = [];
+
   private hass: Record<string, any> = {};
   private subscribedToForecast: any = undefined;
 
@@ -50,7 +59,7 @@ class WeatherForecastCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    if (!this.forecastEventData) {
+    if (this.hasUpdated) {
       this.subscribeToForecastEvents();
     }
   }
@@ -61,11 +70,19 @@ class WeatherForecastCard extends LitElement {
     this.unsubscribeForecastEvents();
   }
 
-  updated(changedProps: any) {
+  updated(changedProps: Map<string, any>) {
     super.updated(changedProps);
 
     this.splitForecastInDays();
     this.activeDay = this.activeDay ?? this.forecastByDay?.[0]?.date;
+    const changedConfig: IConfig = changedProps.get("config");
+
+    if (
+      !this.subscribedToForecast ||
+      this.config?.entity !== changedConfig?.entity
+    ) {
+      this.subscribeToForecastEvents();
+    }
 
     console.log(this.config.entity);
     console.log(this.forecastByDay);
@@ -77,7 +94,7 @@ class WeatherForecastCard extends LitElement {
   async subscribeToForecastEvents() {
     this.unsubscribeForecastEvents();
     this.subscribedToForecast = this.hass.connection.subscribeMessage(
-      (evt: IForecast[]) => {
+      (evt: IForecastEventData) => {
         this.forecastEventData = evt;
       },
       {
@@ -129,14 +146,14 @@ class WeatherForecastCard extends LitElement {
 
   // sets the config provided by the user
   // needed by Home Assistant
-  setConfig(config: Record<string, any>) {
+  setConfig(config: IConfig) {
     this.config = config;
   }
 
   // sets a default config for the component
   // needed by Home Assistant
-  static getStubConfig() {
-    return { entity: "weather.homburg_bad_filter_homburg_bad_filter" };
+  static getStubConfig(): IConfig {
+    return { entity: "weather.forecast_home" };
   }
 
   render() {
