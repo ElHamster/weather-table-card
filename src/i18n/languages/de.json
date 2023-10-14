@@ -1,4 +1,5 @@
 {
+  "dayNames": ["So.", "Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa."],
   "conditions": {
     "clear": "Wolkenlos",
     "clear-night": "Wolkenlos",
