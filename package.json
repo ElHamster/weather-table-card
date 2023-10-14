@@ -2,19 +2,17 @@
   "name": "weather-table-card",
   "type": "module",
   "packageManager": "yarn@3.6.3",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "scripts": {
     "dev": "parcel src/weather-table-card.ts --no-hmr",
     "build": "parcel build src/weather-table-card.ts --public-url ./"
   },
   "devDependencies": {
     "@parcel/transformer-inline-string": "2.9.3",
-    "@parcel/transformer-sass": "2.9.3",
     "@types/node": "^20.8.6",
     "node-gyp": "^9.4.0",
     "parcel": "2.9.3",
     "prettier": "^3.0.3",
-    "sass": "^1.68.0",
     "typescript": "^5.2.2"
   },
   "dependencies": {
