@@ -48,13 +48,7 @@ yarn dev
 The development file will be available at [http://localhost:1234/weather-table-card.js](http://localhost:1234/weather-table-card.js).
 
 ## Known Issues
-
-- This card is currently in a heavy alpha state and may have bugs or incomplete features.
-- ex:
-  - Proper translation
-  - Editor
-  - loading... display
-  - slow
+- missing editor
 
 ## Contributions
 

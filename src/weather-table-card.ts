@@ -1,40 +1,24 @@
 import { css, html, LitElement, unsafeCSS } from "lit";
-import equal from "fast-deep-equal";
+import { customElement, property } from "lit/decorators.js";
 
-// @ts-ignore
-import { customElement, property } from "lit/decorators";
 import { clsx, getCondition } from "./utils.ts";
-import { localize } from "./i18n/localize.ts";
+import { ILocalizer, initLocalize } from "./i18n/localize.ts";
 import {
+  ForecastType,
   IConfig,
   IForecast,
-  IForecastByDay,
+  IForecastDay,
   IForecastEventData,
+  IHass,
 } from "./types.ts";
+import { ICONS } from "./constants.ts";
 
 import classes from "bundle-text:./styles.css";
 
-const dayNames = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-const ICONS: Record<string, string> = {
-  "clear-night": "night",
-  "partlycloudy-night": "night-partly-cloudy",
-  cloudy: "cloudy",
-  fog: "fog",
-  hail: "hail",
-  lightning: "lightning",
-  "lightning-rainy": "lightning-rainy",
-  partlycloudy: "partly-cloudy",
-  pouring: "pouring",
-  rainy: "rainy",
-  snowy: "snowy",
-  "snowy-rainy": "snowy-rainy",
-  sunny: "sunny",
-  windy: "windy",
-  "windy-variant": "windy-variant",
-  exceptional: "alert-outline",
-};
+const IS_DEV = process.env.NODE_ENV === "development";
+const CARD_NAME = `weather-forecast-card${IS_DEV ? "-dev" : ""}`;
 
-@customElement("weather-forecast-card")
+@customElement(CARD_NAME)
 class WeatherForecastCard extends LitElement {
   @property()
   config: IConfig = { entity: "" };
@@ -45,68 +29,78 @@ class WeatherForecastCard extends LitElement {
   @property()
   activeDay: string = new Date().toDateString();
 
-  forecastByDay: IForecastByDay = [];
-
-  private hass: Record<string, any> = {};
-  private subscribedToForecast: any = undefined;
+  private hass: IHass | undefined;
+  private subscribedToForecast: Promise<() => void> | undefined = undefined;
+  private localize: ILocalizer = initLocalize();
 
   static styles = css`
     ${unsafeCSS(classes)}
   `;
 
-  // Lit - Lifecycle methods START
-  // connects the component to the forecast events when mounted
-
-  connectedCallback() {
-    super.connectedCallback();
-    if (this.hasUpdated) {
-      this.subscribeToForecastEvents();
-    }
+  constructor() {
+    super();
   }
 
-  // discconects the component from the forecast events on unmount
+  // Lit - Lifecycle methods START
+
+  // connects the component to the forecast events when mounted
+  connectedCallback() {
+    this.localize = initLocalize(
+      this.config.locale || this.hass?.locale?.language,
+    );
+    super.connectedCallback();
+  }
+
+  // disconnects the component from the forecast events on unmount
   disconnectedCallback() {
     super.disconnectedCallback();
     this.unsubscribeForecastEvents();
   }
 
-  updated(changedProps: Map<string, any>) {
-    super.updated(changedProps);
+  updated(oldProps: Map<string, any>) {
+    super.updated(oldProps);
 
-    const changedConfig: IConfig = changedProps.get("config");
-    const changedForecastEventData: IForecastEventData =
-      changedProps.get("forecastEventData");
+    const oldConfig: IConfig = oldProps.get("config");
 
     if (
       !this.subscribedToForecast ||
-      (changedConfig && this.config?.entity !== changedConfig?.entity)
+      (oldConfig && this.config?.entity !== oldConfig.entity)
     ) {
-      console.log(this.config.entity);
       this.subscribeToForecastEvents();
     }
 
-    if (
-      changedForecastEventData &&
-      !equal(changedForecastEventData, this.forecastEventData)
-    ) {
-      this.splitForecastInDays();
-
-      console.log(this.forecastByDay);
+    if (oldConfig && this.config.locale !== oldConfig.locale) {
+      console.log("locale", this.config.locale);
+      this.localize = initLocalize(
+        this.config.locale || this.hass?.locale?.language,
+      );
+      this.requestUpdate();
     }
   }
 
   // Lit - Lifecycle methods END
 
   // subscribes to forecast events
-  async subscribeToForecastEvents() {
+  subscribeToForecastEvents() {
     this.unsubscribeForecastEvents();
-    this.subscribedToForecast = this.hass.connection.subscribeMessage(
+
+    if (
+      !this.isConnected ||
+      !this.hass ||
+      !this.config ||
+      !this.config.entity ||
+      !this.hassSupportsForecastEvents()
+    ) {
+      return;
+    }
+
+    this.subscribedToForecast = this.hass?.connection.subscribeMessage(
       (evt: IForecastEventData) => {
         this.forecastEventData = evt;
       },
       {
         type: "weather/subscribe_forecast",
-        forecast_type: "hourly",
+        forecast_type: ForecastType.hourly,
         entity_id: this.config.entity,
       },
     );
@@ -115,40 +109,44 @@ class WeatherForecastCard extends LitElement {
   // unsubscribes from forecast events
   unsubscribeForecastEvents() {
     if (this.subscribedToForecast) {
-      this.subscribedToForecast.then((unsub: () => void) => unsub());
+      this.subscribedToForecast.then((unsub) => unsub());
       this.subscribedToForecast = undefined;
     }
   }
 
   // splits the hourly forecast in days
   splitForecastInDays() {
-    this.forecastByDay = [];
+    const forecastByDay: IForecastDay[] = [];
     const forecastRaw = this.getRawForecast();
     forecastRaw.forEach((it) => {
       const dayString = new Date(it.datetime).toDateString();
-      let dayIndex = this.forecastByDay.findIndex(
-        (it) => it.date === dayString,
-      );
+      let dayIndex = forecastByDay.findIndex((it) => it.date === dayString);
       if (dayIndex === -1) {
-        dayIndex = this.forecastByDay.length;
-        this.forecastByDay.push({
+        dayIndex = forecastByDay.length;
+        forecastByDay.push({
           date: dayString,
           forecast: [],
         });
       }
 
-      this.forecastByDay[dayIndex].forecast.push(it);
+      forecastByDay[dayIndex].forecast.push(it);
     });
 
-    return this.forecastByDay;
+    return forecastByDay;
   }
 
+  // gets the raw forecast from the entity or forecast event
   getRawForecast(): IForecast[] {
     return (
       this.forecastEventData?.forecast ??
       this.hass?.states[this.config.entity]?.attributes.forecast ??
       []
     );
+  }
+
+  // checks that the running hass version actually supports the forecast event api
+  hassSupportsForecastEvents(): boolean {
+    return !!this.hass?.services?.weather?.get_forecast;
   }
 
   // sets the config provided by the user
@@ -164,15 +162,17 @@ class WeatherForecastCard extends LitElement {
   }
 
   render() {
-    if (!this.forecastByDay?.length) return html`<div>loading...</div>`;
+    const forecastByDay = this.splitForecastInDays();
+
+    if (!forecastByDay?.length) return html`<div></div>`;
 
     const activeForecastDay =
-      this.forecastByDay.find((it) => it.date === this.activeDay) ??
-      this.forecastByDay[0];
+      forecastByDay.find((it) => it.date === this.activeDay) ??
+      forecastByDay[0];
 
     return html`<ha-card>
       <div class="headContainer">
-        ${this.forecastByDay.slice(0, 7).map((forecastDay) => {
+        ${forecastByDay.slice(0, 7).map((forecastDay) => {
           const date = new Date(forecastDay.date);
           const isActive = this.activeDay === forecastDay.date;
 
@@ -182,12 +182,14 @@ class WeatherForecastCard extends LitElement {
               this.activeDay = forecastDay.date;
             }}"
           >
-            ${dayNames[date.getDay()]}.
+            ${this.localize("dayNames")?.[date.getDay()]}
           </div>`;
         })}
       </div>
       <div class="forecastContainer">
-        <div class="forecastHeadline">${localize("headline.temperature")}</div>
+        <div class="forecastHeadline">
+          ${this.localize("headline.temperature")}
+        </div>
         ${activeForecastDay.forecast.map((it) => {
           const date = new Date(it.datetime);
           const condition = getCondition(it);
@@ -205,14 +207,14 @@ class WeatherForecastCard extends LitElement {
               >/<span style="color:var(--blue-color)">${it.templow}°</span>
             </div>
             <div style="text-align:right;">
-              ${localize(`conditions.${condition}`)}
+              ${this.localize(`conditions.${condition}`)}
             </div>
           </div>`;
         })}
       </div>
       <div class="forecastContainer">
         <div class="forecastHeadline">
-          ${localize("headline.precipitation")}
+          ${this.localize("headline.precipitation")}
         </div>
         ${activeForecastDay.forecast.map((it) => {
           const date = new Date(it.datetime);
@@ -249,8 +251,8 @@ declare global {
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "weather-forecast-card",
-  name: "Custom: Weather Forecast",
+  type: CARD_NAME,
+  name: `Weather Forecast Table Card${IS_DEV ? "- DEVELOPMENT" : ""}`,
   preview: false, // Optional - defaults to false
   description: "A custom card made by me!", // Optional
 });
