@@ -166,6 +166,8 @@ class WeatherForecastCard extends LitElement {
 
     if (!forecastByDay?.length) return html`<div></div>`;
 
+    console.log(forecastByDay);
+
     const activeForecastDay =
       forecastByDay.find((it) => it.date === this.activeDay) ??
       forecastByDay[0];
@@ -204,7 +206,10 @@ class WeatherForecastCard extends LitElement {
                   ? "--red-color"
                   : "--orange-color"})"
                 >${it.temperature}°</span
-              >/<span style="color:var(--blue-color)">${it.templow}°</span>
+              >${it.templow &&
+              html`/<span style="color:var(--blue-color)"
+                  >${it.templow}°</span
+                >`}
             </div>
             <div style="text-align:right;">
               ${this.localize(`conditions.${condition}`)}
@@ -227,9 +232,10 @@ class WeatherForecastCard extends LitElement {
                 >${it.precipitation} mm</span
               >
             </div>
-            <div style="text-align:right;">
+            ${it.precipitation_probability &&
+            html`<div style="text-align:right;">
               ${it.precipitation_probability}%
-            </div>
+            </div>`}
           </div>`;
         })}
       </div>
