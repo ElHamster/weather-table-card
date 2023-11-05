@@ -166,7 +166,7 @@ class WeatherForecastCard extends LitElement {
 
     if (!forecastByDay?.length) return html`<div></div>`;
 
-    console.log(forecastByDay);
+    if (IS_DEV) console.log(forecastByDay);
 
     const activeForecastDay =
       forecastByDay.find((it) => it.date === this.activeDay) ??
