@@ -46,6 +46,7 @@ yarn dev
 ```
 
 The development file will be available at [http://localhost:1234/weather-table-card.js](http://localhost:1234/weather-table-card.js).
+You can add it to you Dashboard via Settings > Dashboards > Resources (in the top right corner)
 
 ## Known Issues
 - missing editor
