@@ -15,6 +15,7 @@ export type IHass = {
   services?: {
     weather?: {
       get_forecast: () => void | undefined;
+      get_forecasts: () => void | undefined;
     };
   };
   locale?: {

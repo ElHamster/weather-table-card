@@ -118,6 +118,7 @@ class WeatherForecastCard extends LitElement {
   splitForecastInDays() {
     const forecastByDay: IForecastDay[] = [];
     const forecastRaw = this.getRawForecast();
+
     forecastRaw.forEach((it) => {
       const dayString = new Date(it.datetime).toDateString();
       let dayIndex = forecastByDay.findIndex((it) => it.date === dayString);
@@ -146,7 +147,10 @@ class WeatherForecastCard extends LitElement {
 
   // checks that the running hass version actually supports the forecast event api
   hassSupportsForecastEvents(): boolean {
-    return !!this.hass?.services?.weather?.get_forecast;
+    return (
+      !!this.hass?.services?.weather?.get_forecast ||
+      !!this.hass?.services?.weather?.get_forecasts
+    );
   }
 
   // sets the config provided by the user
@@ -255,6 +259,7 @@ declare global {
   }
 }
 
+// customElements.define(CARD_NAME, WeatherForecastCard);
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: CARD_NAME,
